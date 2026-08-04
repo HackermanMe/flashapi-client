@@ -1,0 +1,56 @@
+{
+  "name": "@flashapi/client",
+  "version": "0.1.0",
+  "description": "Type-safe SDK client for any FlashAPI backend",
+  "author": "HackermanMe",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && tsc --emitDeclarationOnly --outDir dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "flashapi",
+    "sdk",
+    "rest",
+    "client",
+    "typescript",
+    "websocket",
+    "realtime"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HackermanMe/flashapi-client.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsup": "^8.5.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  },
+  "sideEffects": false
+}
