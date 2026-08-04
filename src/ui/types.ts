@@ -40,10 +40,15 @@ export interface TableConfig<T = any> {
   expand?: string | string[];
   deletable?: boolean;
   editable?: boolean;
+  creatable?: boolean;
   exportable?: boolean;
   bulkActions?: boolean;
   onEdit?: (row: T) => void;
-  onDelete?: (row: T) => void | Promise<void>;
+  onDelete?: (row: T) => boolean | Promise<boolean>;
+  onCreate?: () => void;
+  onBulkCreate?: () => void;
+  confirmDelete?: (row: T) => boolean | Promise<boolean>;
+  confirmBulkDelete?: (count: number) => boolean | Promise<boolean>;
 }
 
 export interface TableState<T = any> {

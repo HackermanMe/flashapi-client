@@ -38,13 +38,14 @@
         "types": "./dist/vue.d.cts",
         "default": "./dist/vue.cjs"
       }
-    }
+    },
+    "./styles.css": "./dist/styles.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup && tsc --emitDeclarationOnly --outDir dist",
+    "build": "tsup && tsc --emitDeclarationOnly --outDir dist && cp src/ui/styles.css dist/styles.css",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",

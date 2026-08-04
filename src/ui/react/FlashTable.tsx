@@ -19,16 +19,22 @@ export function FlashTable<T = any>(props: FlashTableProps<T>) {
     paginated = true,
     editable,
     deletable,
+    creatable = false,
     exportable = false,
     bulkActions = false,
     onEdit,
     onDelete,
+    onCreate,
+    onBulkCreate,
+    confirmDelete,
+    confirmBulkDelete,
     ...config
   } = props;
 
   const tableConfig: TableConfig<T> = {
     ...config, columns, actions, searchable, paginated,
-    editable, deletable, exportable, bulkActions, onEdit, onDelete,
+    editable, deletable, creatable, exportable, bulkActions,
+    onEdit, onDelete, onCreate, onBulkCreate, confirmDelete, confirmBulkDelete,
   };
   const table = useFlashTable<T>(tableConfig);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,12 +45,20 @@ export function FlashTable<T = any>(props: FlashTableProps<T>) {
     searchTimeout.current = setTimeout(() => table.setSearch(value), 300);
   }, [table.setSearch]);
 
+  const handleDeleteRow = useCallback(async (row: T) => {
+    if (onDelete) {
+      const result = await onDelete(row);
+      if (result === false) return;
+    }
+    table.deleteRow(row);
+  }, [onDelete, table.deleteRow]);
+
   const allActions: TableAction<T>[] = [];
   if (editable && onEdit) {
     allActions.push({ key: '_edit', label: 'Edit', onClick: onEdit });
   }
-  if (deletable && onDelete) {
-    allActions.push({ key: '_delete', label: 'Delete', variant: 'danger', onClick: onDelete });
+  if (deletable) {
+    allActions.push({ key: '_delete', label: 'Delete', variant: 'danger', onClick: handleDeleteRow });
   }
   if (actions) allActions.push(...actions);
 
@@ -54,18 +68,31 @@ export function FlashTable<T = any>(props: FlashTableProps<T>) {
 
   return (
     <div className={`flash-table-root ${className ?? ''}`}>
-      {/* Toolbar: search + bulk actions + export */}
+      {/* Toolbar */}
       <div className="flash-table-toolbar">
-        {searchable && (
-          <input
-            type="text"
-            placeholder="Search..."
-            onChange={handleSearch}
-            className="flash-table-search"
-          />
-        )}
+        <div className="flash-table-toolbar-left">
+          {searchable && (
+            <input
+              type="text"
+              placeholder="Search..."
+              onChange={handleSearch}
+              className="flash-table-search"
+            />
+          )}
+        </div>
 
-        <div className="flash-table-toolbar-actions">
+        <div className="flash-table-toolbar-right">
+          {creatable && onCreate && (
+            <button onClick={onCreate} className="flash-table-create-btn">
+              + Add
+            </button>
+          )}
+          {creatable && onBulkCreate && (
+            <button onClick={onBulkCreate} className="flash-table-create-btn">
+              + Bulk add
+            </button>
+          )}
+
           {bulkActions && selectedCount > 0 && (
             <>
               <span className="flash-table-selected-count">{selectedCount} selected</span>
@@ -86,24 +113,9 @@ export function FlashTable<T = any>(props: FlashTableProps<T>) {
 
           {exportable && (
             <div className="flash-table-export">
-              <button
-                onClick={() => table.downloadExport('csv')}
-                className="flash-table-export-btn"
-              >
-                CSV
-              </button>
-              <button
-                onClick={() => table.downloadExport('xlsx')}
-                className="flash-table-export-btn"
-              >
-                Excel
-              </button>
-              <button
-                onClick={() => table.downloadExport('pdf')}
-                className="flash-table-export-btn"
-              >
-                PDF
-              </button>
+              <button onClick={() => table.downloadExport('csv')} className="flash-table-export-btn">CSV</button>
+              <button onClick={() => table.downloadExport('xlsx')} className="flash-table-export-btn">Excel</button>
+              <button onClick={() => table.downloadExport('pdf')} className="flash-table-export-btn">PDF</button>
             </div>
           )}
         </div>
@@ -229,7 +241,6 @@ export function FlashTable<T = any>(props: FlashTableProps<T>) {
 
 function renderCell<T>(col: ColumnDef<T>, value: any, row: T): ReactNode {
   if (col.render) return col.render(value, row);
-
   if (value === null || value === undefined) return '—';
 
   switch (col.type) {

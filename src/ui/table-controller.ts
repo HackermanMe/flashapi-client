@@ -137,6 +137,11 @@ export class TableController<T = any> {
     const ids = this.state.selectedRows.map(r => this.getId(r)).filter(id => id !== undefined);
     if (ids.length === 0) return false;
 
+    if (this.config.confirmBulkDelete) {
+      const confirmed = await this.config.confirmBulkDelete(ids.length);
+      if (!confirmed) return false;
+    }
+
     try {
       await this.resource.bulkDelete(ids);
       await this.fetch();
@@ -175,6 +180,11 @@ export class TableController<T = any> {
   async deleteRow(row: T): Promise<boolean> {
     const id = this.getId(row);
     if (id === undefined) return false;
+
+    if (this.config.confirmDelete) {
+      const confirmed = await this.config.confirmDelete(row);
+      if (!confirmed) return false;
+    }
 
     try {
       await this.resource.delete(id);

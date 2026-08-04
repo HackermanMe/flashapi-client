@@ -1,0 +1,382 @@
+/* ─── FlashTable ──────────────────────────────────────────────────────────── */
+
+.flash-table-root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+/* Toolbar */
+.flash-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  flex-wrap: wrap;
+}
+
+.flash-table-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flash-table-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.flash-table-search {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 240px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.flash-table-search:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.flash-table-create-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.flash-table-create-btn:hover {
+  background: #2563eb;
+}
+
+.flash-table-selected-count {
+  font-size: 13px;
+  color: #6b7280;
+  padding: 0 4px;
+}
+
+.flash-table-bulk-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.flash-table-bulk-btn:hover {
+  background: #f3f4f6;
+}
+
+.flash-table-bulk-delete {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.flash-table-bulk-delete:hover {
+  background: #fef2f2;
+}
+
+/* Export */
+.flash-table-export {
+  display: flex;
+  gap: 4px;
+}
+
+.flash-table-export-btn {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.flash-table-export-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Table */
+.flash-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.flash-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.flash-table thead {
+  background: #f9fafb;
+}
+
+.flash-table th {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.flash-table-sortable {
+  cursor: pointer;
+}
+
+.flash-table-sortable:hover {
+  color: #1f2937;
+}
+
+.flash-table-sort-icon {
+  margin-left: 4px;
+  font-size: 11px;
+}
+
+.flash-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.flash-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.flash-table-row-selected {
+  background: #eff6ff !important;
+}
+
+.flash-table-checkbox-col {
+  width: 40px;
+  text-align: center;
+}
+
+.flash-table-loading,
+.flash-table-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: #9ca3af;
+}
+
+.flash-table-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Actions */
+.flash-table-actions-header {
+  text-align: right;
+}
+
+.flash-table-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.flash-table-action-btn {
+  padding: 4px 10px;
+  margin-left: 4px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.flash-table-action-btn:hover {
+  background: #f3f4f6;
+}
+
+.flash-table-action-danger {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.flash-table-action-danger:hover {
+  background: #fef2f2;
+}
+
+/* Badge */
+.flash-table-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Pagination */
+.flash-table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.flash-table-page-btn {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.flash-table-page-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.flash-table-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.flash-table-page-info {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ─── FlashForm ──────────────────────────────────────────────────────────── */
+
+.flash-form {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  max-width: 560px;
+}
+
+.flash-form-field {
+  margin-bottom: 16px;
+}
+
+.flash-form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 13px;
+  color: #374151;
+}
+
+.flash-form-required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.flash-form-input,
+.flash-form-textarea,
+.flash-form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.flash-form-input:focus,
+.flash-form-textarea:focus,
+.flash-form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.flash-form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.flash-form-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.flash-form-field-error .flash-form-input,
+.flash-form-field-error .flash-form-textarea,
+.flash-form-field-error .flash-form-select {
+  border-color: #dc2626;
+}
+
+.flash-form-field-error .flash-form-input:focus,
+.flash-form-field-error .flash-form-textarea:focus,
+.flash-form-field-error .flash-form-select:focus {
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+}
+
+.flash-form-error-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.flash-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.flash-form-submit {
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.flash-form-submit:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.flash-form-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.flash-form-cancel {
+  padding: 10px 20px;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.flash-form-cancel:hover {
+  background: #f3f4f6;
+}
