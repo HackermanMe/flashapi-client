@@ -1,6 +1,6 @@
 {
   "name": "@flashapi/client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Type-safe SDK client for any FlashAPI backend",
   "author": "HackermanMe",
   "license": "Apache-2.0",
@@ -17,6 +17,26 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    },
+    "./vue": {
+      "import": {
+        "types": "./dist/vue.d.ts",
+        "default": "./dist/vue.js"
+      },
+      "require": {
+        "types": "./dist/vue.d.cts",
+        "default": "./dist/vue.cjs"
       }
     }
   },
@@ -37,7 +57,11 @@
     "client",
     "typescript",
     "websocket",
-    "realtime"
+    "realtime",
+    "react",
+    "vue",
+    "table",
+    "form"
   ],
   "repository": {
     "type": "git",
@@ -46,11 +70,22 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "vue": ">=3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "vue": { "optional": true }
+  },
   "devDependencies": {
     "@types/node": "^26.1.2",
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
     "tsup": "^8.5.1",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "vue": "^3.5.0"
   },
   "sideEffects": false
 }
