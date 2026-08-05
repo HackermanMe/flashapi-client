@@ -33,6 +33,7 @@ A step-by-step guide to using the SDK in a real project. Covers authentication, 
 - [Debug mode](#debug-mode)
 - [CORS — the #1 frontend issue](#cors--the-1-frontend-issue)
 - [Using with React](#using-with-react)
+- [Using with Angular](#using-with-angular)
 - [Using with Vue](#using-with-vue)
 - [Using with Node.js (server-side)](#using-with-nodejs-server-side)
 - [ESM vs CommonJS imports](#esm-vs-commonjs-imports)
@@ -892,6 +893,349 @@ function CreateProductButton() {
       Add product
     </button>
   );
+}
+```
+
+---
+
+## Using with Angular
+
+Angular uses the SDK's core directly (no sub-path import needed). Wrap `FlashClient` in an Angular service for dependency injection:
+
+**Step 1 — Create a service:**
+
+```typescript
+// src/app/services/flash.service.ts
+import { Injectable } from '@angular/core';
+import { FlashClient, EntityResource } from '@flashapi/client';
+import { environment } from '../../environments/environment';
+
+@Injectable({ providedIn: 'root' })
+export class FlashService {
+  private readonly client: FlashClient;
+
+  constructor() {
+    this.client = new FlashClient({
+      baseUrl: environment.apiUrl,  // e.g. 'http://localhost:8000/api/v1'
+      auth: {
+        type: 'custom',
+        interceptor: (headers) => {
+          const token = localStorage.getItem('access_token');
+          if (token) headers.set('Authorization', `Bearer ${token}`);
+          return headers;
+        },
+      },
+    });
+  }
+
+  entity<T>(name: string): EntityResource<T> {
+    return this.client.entity<T>(name);
+  }
+
+  get ws() {
+    return this.client;
+  }
+}
+```
+
+**Step 2 — Use in a component with debounced search:**
+
+```typescript
+// src/app/pages/students/students.component.ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { FlashService } from '../../services/flash.service';
+import type { ListResponse } from '@flashapi/client';
+
+interface Student {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  grade: number;
+}
+
+@Component({
+  selector: 'app-students',
+  template: `
+    <div class="students-page">
+      <input
+        type="text"
+        placeholder="Search students..."
+        (input)="onSearch($event)"
+      />
+
+      <table *ngIf="!loading">
+        <thead>
+          <tr>
+            <th (click)="toggleSort('last_name')">Last Name</th>
+            <th (click)="toggleSort('first_name')">First Name</th>
+            <th>Email</th>
+            <th (click)="toggleSort('grade')">Grade</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of students">
+            <td>{{ student.last_name }}</td>
+            <td>{{ student.first_name }}</td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.grade }}</td>
+            <td>
+              <button (click)="edit(student)">Edit</button>
+              <button (click)="delete(student)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p *ngIf="loading">Loading...</p>
+      <p *ngIf="!loading && students.length === 0">No students found.</p>
+
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button (click)="setPage(page - 1)" [disabled]="page === 0">Previous</button>
+        <span>Page {{ page + 1 }} of {{ totalPages }}</span>
+        <button (click)="setPage(page + 1)" [disabled]="page >= totalPages - 1">Next</button>
+      </div>
+    </div>
+  `,
+})
+export class StudentsComponent implements OnInit, OnDestroy {
+  students: Student[] = [];
+  loading = true;
+  page = 0;
+  totalPages = 0;
+  sort = 'last_name,asc';
+  private search$ = new Subject<string>();
+  private currentSearch = '';
+  private abortController: AbortController | null = null;
+  private resource = this.flash.entity<Student>('students');
+
+  constructor(private flash: FlashService) {}
+
+  ngOnInit(): void {
+    // Debounced search — only fires after 300ms of inactivity
+    this.search$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+    ).subscribe(query => {
+      this.currentSearch = query;
+      this.page = 0;
+      this.fetchData();
+    });
+
+    this.fetchData();
+  }
+
+  ngOnDestroy(): void {
+    this.abortController?.abort();
+    this.search$.complete();
+  }
+
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.search$.next(value);
+  }
+
+  toggleSort(key: string): void {
+    const [currentKey, currentDir] = this.sort.split(',');
+    if (currentKey === key) {
+      this.sort = `${key},${currentDir === 'asc' ? 'desc' : 'asc'}`;
+    } else {
+      this.sort = `${key},asc`;
+    }
+    this.fetchData();
+  }
+
+  setPage(page: number): void {
+    if (page < 0 || page >= this.totalPages) return;
+    this.page = page;
+    this.fetchData();
+  }
+
+  async delete(student: Student): Promise<void> {
+    if (!confirm(`Delete ${student.first_name} ${student.last_name}?`)) return;
+    await this.resource.delete(student.id);
+    this.fetchData();
+  }
+
+  edit(student: Student): void {
+    // Navigate to edit page
+  }
+
+  private async fetchData(): Promise<void> {
+    this.abortController?.abort();
+    this.abortController = new AbortController();
+    this.loading = true;
+
+    try {
+      const result = await this.resource.list(
+        {
+          page: this.page,
+          size: 20,
+          sort: this.sort,
+          search: this.currentSearch || undefined,
+        },
+        this.abortController.signal,
+      );
+
+      this.students = result.data;
+      this.totalPages = result.meta.totalPages;
+      this.loading = false;
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      this.loading = false;
+      console.error('Failed to load students:', err.message);
+    }
+  }
+}
+```
+
+**Key points for Angular:**
+- Use RxJS `debounceTime(300)` + `distinctUntilChanged()` to prevent multiple requests while typing
+- Abort the previous request in `fetchData()` before starting a new one — this guarantees only the latest search result is shown
+- The SDK handles trailing slashes automatically — no need for Angular interceptors
+- Create the `FlashClient` once inside a service, not per-component
+
+**Step 3 — Create form (reactive forms):**
+
+```typescript
+// src/app/pages/students/student-form.component.ts
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FlashService } from '../../services/flash.service';
+
+@Component({
+  selector: 'app-student-form',
+  template: `
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div>
+        <label>First Name *</label>
+        <input formControlName="first_name" />
+        <span *ngIf="form.get('first_name')?.errors?.['required'] && form.get('first_name')?.touched">
+          Required
+        </span>
+      </div>
+      <div>
+        <label>Last Name *</label>
+        <input formControlName="last_name" />
+      </div>
+      <div>
+        <label>Email *</label>
+        <input formControlName="email" type="email" />
+      </div>
+      <div>
+        <label>Grade</label>
+        <input formControlName="grade" type="number" />
+      </div>
+      <button type="submit" [disabled]="form.invalid || submitting">
+        {{ isEdit ? 'Save' : 'Create' }}
+      </button>
+    </form>
+  `,
+})
+export class StudentFormComponent implements OnInit {
+  form!: FormGroup;
+  isEdit = false;
+  submitting = false;
+  private studentId?: number;
+  private resource = this.flash.entity<any>('students');
+
+  constructor(
+    private fb: FormBuilder,
+    private flash: FlashService,
+    private route: ActivatedRoute,
+    private router: Router,
+  ) {}
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      first_name: ['', Validators.required],
+      last_name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      grade: [null, [Validators.min(0), Validators.max(20)]],
+    });
+
+    const id = this.route.snapshot.params['id'];
+    if (id) {
+      this.isEdit = true;
+      this.studentId = +id;
+      this.loadStudent(this.studentId);
+    }
+  }
+
+  private async loadStudent(id: number): Promise<void> {
+    const result = await this.resource.get(id);
+    this.form.patchValue(result.data);
+  }
+
+  async submit(): Promise<void> {
+    if (this.form.invalid) return;
+    this.submitting = true;
+
+    try {
+      if (this.isEdit) {
+        await this.resource.update(this.studentId!, this.form.value);
+      } else {
+        await this.resource.create(this.form.value);
+      }
+      this.router.navigate(['/students']);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      this.submitting = false;
+    }
+  }
+}
+```
+
+**Step 4 — Bulk operations & export:**
+
+```typescript
+// In any component
+async bulkDelete(selectedIds: number[]): Promise<void> {
+  if (!confirm(`Delete ${selectedIds.length} students?`)) return;
+  const result = await this.resource.bulkDelete(selectedIds);
+  console.log(`Deleted: ${result.meta.succeeded}/${result.meta.total}`);
+  this.fetchData();
+}
+
+async exportStudents(): Promise<void> {
+  const blob = await this.resource.export({ format: 'xlsx' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'students.xlsx';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+```
+
+**Step 5 — Real-time updates with WebSocket:**
+
+```typescript
+// In a component or service
+import { Unsubscribe } from '@flashapi/client';
+
+export class StudentsComponent implements OnInit, OnDestroy {
+  private unsubscribe?: Unsubscribe;
+
+  ngOnInit(): void {
+    this.fetchData();
+
+    // Auto-refresh when another user creates/updates/deletes a student
+    this.unsubscribe = this.flash.ws.subscribe<Student>('students', (event) => {
+      console.log(`${event.type}: ${event.data.first_name}`);
+      this.fetchData();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe?.();
+    this.abortController?.abort();
+  }
 }
 ```
 
