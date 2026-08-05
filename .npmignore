@@ -1,0 +1,9 @@
+src/
+tests/
+docs/
+.github/
+.claude/
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+*.jsonl
