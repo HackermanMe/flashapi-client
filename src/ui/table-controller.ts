@@ -10,10 +10,13 @@ export class TableController<T = any> {
   private state: TableState<T>;
   private listeners: Set<TableListener<T>> = new Set();
   private abortController: AbortController | null = null;
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly searchDebounceMs: number;
 
   constructor(config: TableConfig<T>) {
     this.config = config;
     this.resource = config.client.entity<T>(config.entity);
+    this.searchDebounceMs = config.searchDebounceMs ?? 300;
     this.state = {
       data: [],
       loading: true,
@@ -90,7 +93,8 @@ export class TableController<T = any> {
 
   setSearch(search: string): void {
     this.update({ search, page: 0 });
-    this.fetch();
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.fetch(), this.searchDebounceMs);
   }
 
   setSort(key: string, direction?: SortDirection): void {
@@ -201,6 +205,7 @@ export class TableController<T = any> {
 
   destroy(): void {
     this.abortController?.abort();
+    if (this.searchTimer) clearTimeout(this.searchTimer);
     this.listeners.clear();
   }
 

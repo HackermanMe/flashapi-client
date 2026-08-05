@@ -1,4 +1,4 @@
-import { useCallback, useRef, type ChangeEvent, type ReactNode } from 'react';
+import { useCallback, type ChangeEvent, type ReactNode } from 'react';
 import type { ColumnDef, TableAction, TableConfig } from '../types.js';
 import { useFlashTable } from './use-table.js';
 
@@ -37,12 +37,9 @@ export function FlashTable<T = any>(props: FlashTableProps<T>) {
     onEdit, onDelete, onCreate, onBulkCreate, confirmDelete, confirmBulkDelete,
   };
   const table = useFlashTable<T>(tableConfig);
-  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSearch = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    searchTimeout.current = setTimeout(() => table.setSearch(value), 300);
+    table.setSearch(e.target.value);
   }, [table.setSearch]);
 
   const handleDeleteRow = useCallback(async (row: T) => {

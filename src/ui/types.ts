@@ -33,6 +33,7 @@ export interface TableConfig<T = any> {
   columns: ColumnDef<T>[];
   actions?: TableAction<T>[];
   searchable?: boolean;
+  searchDebounceMs?: number;
   paginated?: boolean;
   pageSize?: number;
   defaultSort?: { key: string; direction: SortDirection };
