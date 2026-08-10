@@ -588,6 +588,7 @@ client.dispose();
 - **Auto-reconnect**: If the connection drops (network issue, server restart), the SDK reconnects with exponential backoff and re-sends all subscriptions.
 - **Auto-disconnect**: When all subscriptions are removed, the WebSocket closes.
 - **Topic format**: `/topic/entities` (all) or `/topic/{entity-name-lowercase}` (specific).
+- **Authentication**: If your client uses `type: 'bearer'`, the token is automatically sent as a `?token=` query parameter during the WebSocket handshake. Your backend should validate it on connection (e.g. Django Channels `connect()` or Spring `HandshakeInterceptor`).
 
 ---
 
@@ -895,6 +896,77 @@ function CreateProductButton() {
   );
 }
 ```
+
+**With `useFlashEntity` (all-in-one hook with real-time + optimistic updates):**
+
+```tsx
+import { FlashClient } from '@flashapi/client';
+import { useFlashEntity } from '@flashapi/client/react';
+
+const client = new FlashClient({
+  baseUrl: 'http://localhost:8000/api/v1',
+  auth: { type: 'bearer', token: localStorage.getItem('token')! },
+});
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+function ProductPage() {
+  const products = useFlashEntity<Product>(client, 'products', {
+    realtime: true,     // auto-updates via WebSocket on CRUD events
+    optimistic: true,   // instant UI update before server confirms
+  });
+
+  useEffect(() => { products.list(); }, []);
+
+  if (products.isLoading) return <p>Loading...</p>;
+  if (products.error) return <p>Error: {products.error.message}</p>;
+
+  return (
+    <div>
+      <button
+        onClick={() => products.create({ name: 'Widget', price: 19.99 })}
+        disabled={products.isMutating}
+      >
+        Add Product
+      </button>
+
+      <input
+        type="text"
+        placeholder="Search..."
+        onChange={(e) => products.setSearch(e.target.value)}
+      />
+
+      <ul>
+        {products.data.map(p => (
+          <li key={p.id}>
+            {p.name} — ${p.price}
+            <button onClick={() => products.update(p.id, { price: p.price + 1 })}>+$1</button>
+            <button onClick={() => products.remove(p.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+
+      {products.meta && (
+        <div>
+          Page {(products.meta.page ?? 0) + 1} of {products.meta.totalPages}
+          <button onClick={() => products.setPage((products.meta!.page ?? 0) + 1)}>Next</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+`useFlashEntity` features:
+- **Real-time**: when `realtime: true`, WebSocket events (`ENTITY_CREATED`, `ENTITY_UPDATED`, `ENTITY_DELETED`) automatically update the local data without refetching.
+- **Optimistic updates**: when `optimistic: true`, `create()`, `update()`, `remove()` update the UI instantly. If the server rejects, it auto-rollbacks.
+- **Debounced search**: `setSearch()` is internally debounced (300ms) — safe to call on every keystroke.
+- **Polling fallback**: pass `pollInterval: 5000` instead of `realtime` for backends without WebSocket.
+- **Pagination/sort/filter**: `setPage()`, `setSort()`, `setFilters()` trigger automatic refetch.
 
 ---
 
@@ -1487,6 +1559,7 @@ export function StudentsPage() {
 | `entity` | `string` | **required** | Entity name (matches your backend route) |
 | `columns` | `ColumnDef<T>[]` | **required** | Column definitions (see below) |
 | `searchable` | `boolean` | `false` | Show search input |
+| `searchDebounceMs` | `number` | `300` | Debounce delay for search (ms). Prevents flooding the API while typing |
 | `paginated` | `boolean` | `true` | Enable pagination |
 | `pageSize` | `number` | `20` | Rows per page |
 | `defaultSort` | `{ key, direction }` | `null` | Initial sort |
