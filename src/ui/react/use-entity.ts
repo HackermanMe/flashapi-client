@@ -271,8 +271,12 @@ export function useFlashEntity<T extends Record<string, any>>(
     setListOptions((prev) => ({ ...prev, sort, page: 0 }));
   }, []);
 
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setSearch = useCallback((search: string) => {
-    setListOptions((prev) => ({ ...prev, search, page: 0 }));
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setListOptions((prev) => ({ ...prev, search, page: 0 }));
+    }, 300);
   }, []);
 
   const setPage = useCallback((page: number) => {
@@ -340,6 +344,13 @@ export function useFlashEntity<T extends Record<string, any>>(
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
   }, [pollInterval, realtime, refresh]);
+
+  // Cleanup search debounce timer
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, []);
 
   return {
     data,

@@ -119,10 +119,20 @@ export class FormController<T = any> {
 
     try {
       const relResource = this.config.client.entity<any>(field.entity);
-      const result = await relResource.list({ size: 100 });
-      const displayKey = field.display ?? 'name';
+      const allItems: any[] = [];
+      let page = 0;
+      const pageSize = 100;
+      let totalPages = 1;
 
-      const options = result.data.map((item: any) => ({
+      do {
+        const result = await relResource.list({ page, size: pageSize });
+        allItems.push(...result.data);
+        totalPages = result.meta.totalPages;
+        page++;
+      } while (page < totalPages && page < 10);
+
+      const displayKey = field.display ?? 'name';
+      const options = allItems.map((item: any) => ({
         value: item.id ?? item.tracking_id,
         label: item[displayKey] ?? String(item.id ?? item.tracking_id),
       }));

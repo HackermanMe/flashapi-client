@@ -19,8 +19,11 @@ export class FlashClient {
 
   subscribe<T = unknown>(topic: string, callback: EventCallback<T>): Unsubscribe {
     if (!this.wsManager) {
+      const auth = this.config.auth;
+      const token = auth?.type === 'bearer' ? auth.token : undefined;
       this.wsManager = new WebSocketManager({
         baseUrl: this.config.baseUrl,
+        auth: token ? { token } : undefined,
         WebSocketConstructor: this.config.webSocketConstructor,
         debug: this.config.debug,
         logger: this.config.logger,

@@ -10,11 +10,18 @@ import type {
 import type { HttpClient } from './http.js';
 import { serializeFilters } from './filters.js';
 
+const ENTITY_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+
 export class EntityResource<T> {
   private readonly http: HttpClient;
   private readonly entity: string;
 
   constructor(http: HttpClient, entity: string) {
+    if (!entity || !ENTITY_NAME_PATTERN.test(entity)) {
+      throw new Error(
+        `Invalid entity name "${entity}". Must start with a letter and contain only letters, digits, hyphens, or underscores.`
+      );
+    }
     this.http = http;
     this.entity = entity;
   }
