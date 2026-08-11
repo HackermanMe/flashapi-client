@@ -2,6 +2,7 @@ import type { EventCallback, FlashEvent, Unsubscribe } from './types.js';
 
 interface WebSocketManagerConfig {
   baseUrl: string;
+  auth?: { token?: string };
   WebSocketConstructor?: new (url: string) => WebSocket;
   reconnectBaseDelay?: number;
   reconnectMaxDelay?: number;
@@ -15,6 +16,7 @@ export class WebSocketManager {
   private ws: WebSocket | null = null;
   private state: ConnectionState = 'disconnected';
   private readonly wsUrl: string;
+  private readonly authToken: string | undefined;
   private readonly WebSocketImpl: new (url: string) => WebSocket;
   private readonly reconnectBaseDelay: number;
   private readonly reconnectMaxDelay: number;
@@ -29,6 +31,7 @@ export class WebSocketManager {
   constructor(config: WebSocketManagerConfig) {
     const httpUrl = config.baseUrl.replace(/\/+$/, '');
     this.wsUrl = httpUrl.replace(/^http/, 'ws') + '/ws';
+    this.authToken = config.auth?.token;
     this.WebSocketImpl = config.WebSocketConstructor ?? globalThis.WebSocket;
     this.reconnectBaseDelay = config.reconnectBaseDelay ?? 1000;
     this.reconnectMaxDelay = config.reconnectMaxDelay ?? 30000;
@@ -86,7 +89,10 @@ export class WebSocketManager {
     this.log('Connecting...');
 
     try {
-      this.ws = new this.WebSocketImpl(this.wsUrl);
+      const url = this.authToken
+        ? `${this.wsUrl}?token=${encodeURIComponent(this.authToken)}`
+        : this.wsUrl;
+      this.ws = new this.WebSocketImpl(url);
     } catch (e) {
       this.state = 'disconnected';
       this.scheduleReconnect();
