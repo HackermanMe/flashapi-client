@@ -1,6 +1,6 @@
 {
   "name": "@flashapi/client",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Type-safe SDK client for any FlashAPI backend",
   "author": "HackermanMe",
   "license": "Apache-2.0",
@@ -76,8 +76,12 @@
     "vue": ">=3.3.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "vue": { "optional": true }
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
