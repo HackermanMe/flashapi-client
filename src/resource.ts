@@ -32,6 +32,7 @@ export class EntityResource<T> {
       method: 'GET',
       path: this.entity,
       params,
+      idempotencyKey: options.idempotencyKey,
       signal,
     });
     return response.data;
@@ -42,6 +43,9 @@ export class EntityResource<T> {
     if (options.expand) {
       params['expand'] = Array.isArray(options.expand) ? options.expand.join(',') : options.expand;
     }
+    if (options.fields) {
+      params['fields'] = Array.isArray(options.fields) ? options.fields.join(',') : options.fields;
+    }
     const response = await this.http.request<ItemResponse<T>>({
       method: 'GET',
       path: `${this.entity}/${id}`,
@@ -51,11 +55,12 @@ export class EntityResource<T> {
     return response.data;
   }
 
-  async create(body: Partial<T>, signal?: AbortSignal): Promise<ItemResponse<T>> {
+  async create(body: Partial<T>, options: { idempotencyKey?: string } = {}, signal?: AbortSignal): Promise<ItemResponse<T>> {
     const response = await this.http.request<ItemResponse<T>>({
       method: 'POST',
       path: this.entity,
       body,
+      idempotencyKey: options.idempotencyKey,
       signal,
     });
     return response.data;
@@ -154,6 +159,9 @@ export class EntityResource<T> {
     if (options.deleted) params['deleted'] = 'true';
     if (options.expand) {
       params['expand'] = Array.isArray(options.expand) ? options.expand.join(',') : options.expand;
+    }
+    if (options.fields) {
+      params['fields'] = Array.isArray(options.fields) ? options.fields.join(',') : options.fields;
     }
     if (options.filters) {
       Object.assign(params, serializeFilters(options.filters));

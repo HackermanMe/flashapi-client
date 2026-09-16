@@ -99,6 +99,12 @@ export class HttpClient {
         this.log(`${config.method} ${config.path}`, { attempt });
 
         const headers = new Headers({ 'Content-Type': 'application/json' });
+
+        // Add Idempotency-Key header if provided (prevents duplicate operations)
+        if (config.idempotencyKey) {
+          headers.set('Idempotency-Key', config.idempotencyKey);
+        }
+
         const authedHeaders = await applyAuth(headers, this.auth);
 
         const response = await fetch(url, {

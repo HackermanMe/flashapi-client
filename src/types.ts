@@ -36,10 +36,13 @@ export interface ListOptions {
   filters?: Filters;
   expand?: string | string[];
   deleted?: boolean;
+  fields?: string | string[];  // Field selection: ?fields=id,name,price
+  idempotencyKey?: string;     // Idempotency-Key header (UUID)
 }
 
 export interface GetOptions {
   expand?: string | string[];
+  fields?: string | string[];  // Field selection
 }
 
 export interface ExportOptions {
@@ -134,6 +137,7 @@ export interface RequestConfig {
   signal?: AbortSignal;
   timeout?: number;
   responseType?: 'json' | 'blob';
+  idempotencyKey?: string;
 }
 
 export interface HttpResponse<T = unknown> {
