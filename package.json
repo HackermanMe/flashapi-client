@@ -1,6 +1,6 @@
 {
   "name": "@flashapi/client",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Type-safe SDK client for any FlashAPI backend",
   "author": "HackermanMe",
   "license": "Apache-2.0",

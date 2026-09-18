@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/HackermanMe/flashapi-client/compare/v1.0.0...v1.1.0) (2026-09-18)
+
+
+### Features
+
+* add idempotency keys and field selection support ([cc7eb19](https://github.com/HackermanMe/flashapi-client/commit/cc7eb19ef2076ba720c8e5d9158991fadeeba690))
+
 ## 1.0.0 (2026-08-11)
 
 
